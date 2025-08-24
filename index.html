@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Locked Page</title>
+  <style>
+    :root { --bg:#0f172a; --panel:#111827; --fg:#e5e7eb; --muted:#9ca3af; }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; font-family: system-ui, Arial, sans-serif; background: var(--bg); color: var(--fg); }
+    #lock-screen { position: fixed; inset: 0; display: grid; place-items: center; background: var(--bg); z-index: 9999; }
+    .panel { width: min(92vw, 420px); background: var(--panel); border-radius: 12px; padding: 22px; box-shadow: 0 10px 30px rgba(0,0,0,.4); }
+    h1 { font-size: 1.25rem; margin: 0 0 10px; }
+    input { width: 100%; padding: 12px 14px; margin: 6px 0; border-radius: 10px; border: 1px solid #374151; background: #0b1220; color: var(--fg); }
+    button { width: 100%; padding: 12px 14px; margin-top: 14px; border: 0; border-radius: 10px; cursor: pointer; background: #16a34a; color: white; font-weight: 600; }
+    .error { color: #fca5a5; font-size: .9rem; margin-top: 8px; }
+    #protected-content { display: none; padding: 26px; max-width: 880px; margin: 0 auto; }
+  </style>
+  <script>
+    const USERNAME = "Izza";
+    const PASS_HASH_HEX = "53d9b302b40ecefd9cbcb6fdaf568eca4eafa8b60418f63bdaff5814abb303f9"; // hash of "Kamlian"
+
+    async function sha256Hex(text) {
+      const enc = new TextEncoder().encode(text);
+      const buf = await crypto.subtle.digest("SHA-256", enc);
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+    }
+
+    async function unlock(e) {
+      e.preventDefault();
+      const u = document.getElementById("username").value.trim();
+      const p = document.getElementById("password").value;
+      const msg = document.getElementById("msg");
+      const hash = await sha256Hex(p);
+      if (u === USERNAME && hash === PASS_HASH_HEX) {
+        sessionStorage.setItem("isUnlocked", "1");
+        document.getElementById("lock-screen").style.display = "none";
+        document.getElementById("protected-content").style.display = "block";
+      } else {
+        msg.textContent = "❌ Invalid username or password!";
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      if (sessionStorage.getItem("isUnlocked") === "1") {
+        document.getElementById("lock-screen").style.display = "none";
+        document.getElementById("protected-content").style.display = "block";
+      }
+    });
+  </script>
+</head>
+<body>
+  <!-- Lock Screen -->
+  <div id="lock-screen">
+    <form class="panel" onsubmit="unlock(event)">
+      <h1>🔒 Secure Login</h1>
+      <input id="username" type="text" placeholder="Username" required />
+      <input id="password" type="password" placeholder="Password" required />
+      <button type="submit">Unlock</button>
+      <div id="msg" class="error"></div>
+    </form>
+  </div>
+
+  <!-- Protected Content -->
+  <main id="protected-content">
+    <h2>✅ Welcome, Izza!</h2>
+    <p>This is your hidden page content. Replace this section with your real content.</p>
+  </main>
+</body>
+</html>
